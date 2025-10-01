@@ -51,6 +51,7 @@ public class ejercicioFileFilter {
     public static String pedirPorTeclado(String mensaje){
         System.out.print(mensaje);
         return sc.nextLine();
+
     }
 
     class FilterByLetter implements FileNameFilter{
