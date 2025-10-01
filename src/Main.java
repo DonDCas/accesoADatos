@@ -8,7 +8,7 @@ import java.util.Date;
 
 public class Main {
     public static void main(String[] args) {
-        String ruta = ".";
+        /*String ruta = ".";
         if(args.length>=1) ruta=args[0];
         File fich = new File(ruta);
         if (!fich.exists()) System.out.println("No existe el fichero o directorio ("+ruta+")");
@@ -70,5 +70,5 @@ public class Main {
     }
 
     private static String addDirOrFile(File f) {return f.isDirectory() ? "d" : f.isFile() ? "-" : "?";}
-
+*/}
 }
