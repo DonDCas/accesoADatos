@@ -8,7 +8,7 @@ import java.util.Date;
 
 public class Main {
     public static void main(String[] args) {
-        /*String ruta = ".";
+        String ruta = ".";
         if(args.length>=1) ruta=args[0];
         File fich = new File(ruta);
         if (!fich.exists()) System.out.println("No existe el fichero o directorio ("+ruta+")");
@@ -19,13 +19,6 @@ public class Main {
                 File[] ficheros = fich.listFiles();
                 for (File f :  ficheros){
                     String textoDescr = descripcionTexto(f);
-                    if (f.isFile()) {
-                        long tamanio = f.length() / 1024 ;
-                        textoDescr += tamanio + " KiB - ";
-                    }
-                    String fecha[] = String.valueOf(new Date(f.lastModified())).split(" ");
-                    String lastModif = fecha[2]+"/"+fecha[1]+"/"+fecha[5];
-                    textoDescr += lastModif;
                     System.out.println("(" + textoDescr + ") - " + f.getName());
                 }
             }
@@ -42,24 +35,12 @@ public class Main {
         }
         if (f.isFile()) {
             textoDescr += addTamanio(f);
-            long tamanio = f.length() / 1024 ;
-            textoDescr += tamanio + " KiB - ";
         }
-
+        textoDescr += addLastModif(f);
         return textoDescr;
     }
 
-    private static String addTamanio(File f) {
-        long tamanio = f.length();
-        while (tamanio > 1024) {
-            if(tamanio >)
-        }
-        textoDescr += tamanio + " KiB - ";
-    }
-
-    private static String addOwner(File f) throws IOException {
-        return " - " + Files.getOwner(Path.of(f.getPath())) + " - ";
-    }
+    private static String addDirOrFile(File f) {return f.isDirectory() ? "d" : f.isFile() ? "-" : "?";}
 
     private static String addPermisos(File f) {
         String textoDescr = "";
@@ -69,6 +50,35 @@ public class Main {
         return textoDescr;
     }
 
-    private static String addDirOrFile(File f) {return f.isDirectory() ? "d" : f.isFile() ? "-" : "?";}
-*/}
+    private static String addOwner(File f) throws IOException {
+        return " - " + Files.getOwner(Path.of(f.getPath())) + " - ";
+    }
+
+    private static String addTamanio(File f) {
+        int contConversion = 0;
+        double tamanio = f.length();
+        while (tamanio > 1024) {
+            tamanio /= 1024.0;
+            contConversion++;
+        }
+
+        String unidad =  switch (contConversion){
+            case 0 -> " B";
+            case 1 -> " KiB";
+            case 2 -> " MiB";
+            case 3 -> " GiB";
+            default -> " TiB";
+        };
+
+        return (contConversion == 0) ? tamanio + unidad + " -"
+                : String.format("%.2f%s -", tamanio, unidad);
+
+    }
+
+    private static String addLastModif(File f) {
+        String fecha[] = String.valueOf(new Date(f.lastModified())).split(" ");
+        String lastModif = fecha[2]+"/"+fecha[1]+"/"+fecha[5];
+        return  lastModif;
+    }
+
 }
