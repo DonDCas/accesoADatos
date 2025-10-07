@@ -1,8 +1,5 @@
 import java.io.File;
 import java.io.FilenameFilter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -15,15 +12,13 @@ public class RuedaSerrano_FranciscoJavier_ejercicioFileFilter {
     public static void main(String[] args) {
         String ruta = "";
         //Se le puede pasar una ruta por argumentos y sino la puedes introducir aqui:
-        if (args.length <= 0) ruta = pedirPorTeclado("Introduce una ruta para ver sus archivos: ");
+        if (args.length > 1) ruta = pedirPorTeclado("Introduce una ruta para ver sus archivos: ");
         else ruta = args[0];
-        //ruta = pedirPorTeclado("Introduce una ruta para ver sus archivos: ");
         File dir =  new File(ruta);
         int op=-1;
-        if (dir.exists() && dir.isDirectory()) {
-            do{
-                try{
-                    op = elegirOpcion("""
+        do{
+            try{
+                op = elegirOpcion("""
                     Elige una de las siguientes opciones:
                     1- Listar entre los ficheros los que empiecen con una letra determinada.
                     2- Listar ficheros de un tamaño superior al indicado.
@@ -31,78 +26,20 @@ public class RuedaSerrano_FranciscoJavier_ejercicioFileFilter {
                     
                     0- Salir
                     Opción deseada: """);
-                } catch (NullPointerException e) { op = Integer.parseInt(mensajeError(e, ""));}
-                switch (op) {
-                    case 1 -> listarFicherosStarWiths(dir);
-                    case 2 -> listarFicherosTamanio(dir);
-                    case 3 -> listarFicherosDate(dir);
-                    case 0 -> System.out.println("Adios.");
-                    default -> System.out.println( op != -1 ? "ERROR AL ELEGIR OPCIÓN" : "");
-                }
-            }while(op<0 || op >4);
-        }else System.out.println("El directorio no existe.");
+            } catch (NullPointerException e) { op = Integer.parseInt(mensajeError(e, ""));}
+            switch (op) {
+                case 1 -> listarFicherosStarWiths(dir);
+                case 2 -> listarFicherosTamanio(dir);
+                case 3 -> listarFicherosDate(dir);
+                case 0 -> System.out.println("Adios.");
+                default -> System.out.println( op != -1 ? "ERROR AL ELEGIR OPCIÓN" : "");
+            }
+        }while(op<0 || op >4);
 
-    }
-
-    private static void listarFicherosDate(File dir) {
-        String stringDate = "";
-        Date dateFilter = null;
-
-        do{
-            stringDate = pedirPorTeclado("Introduce la fecha de creación desde la que empezar a buscar (dd/MM/yyyy): ");
-            stringDate = stringDate.trim();
-            dateFilter = parseDate(stringDate);
-        }while (dateFilter == null);
-        FilenameFilter filter = new  FilterByDate(dateFilter);
-        File[] files = dir.listFiles(filter);
-        for (File file : files) {
-            System.out.println(file.getName() + " - " + new Date(file.lastModified()));
-        }
-    }
-
-    private static void listarFicherosTamanio(File dir) {
-        String stringSize = "";
-        long sizeFilter = -1;
-        do{
-            stringSize = pedirPorTeclado("Introduce el tamaño de los archivos que quieres filtrar seguido de su unidad (ej: 2 GB): ");
-            stringSize = stringSize.trim();
-            String[] stringSizeArray = stringSize.split(" ");
-            if (stringSizeArray.length == 2){
-                int numConversiones = numConversiones(stringSizeArray[1]);
-                try{
-                    sizeFilter = Long.parseLong(stringSizeArray[0]);
-                } catch (NumberFormatException e) {
-                    mensajeError(e, "La longitud del archivo no es valido");
-                }
-                if (numConversiones > 0 && sizeFilter != -1){
-                    for (int i = 1; i <= numConversiones; i++) sizeFilter *= 1024;
-                }
-                if (numConversiones == -1){
-                    System.out.println("No se introdujo debidamente la unidad del tamaño de los archivos. FIJATE EN EL EJEMPLO");
-                    sizeFilter = -1;
-                }
-            }else System.out.println("No se introdujo debidamente el tamaño de los archivos para filtrar. FIJATE EN EL EJEMPLO");
-        }while (sizeFilter == -1);
-        FilenameFilter filter = new  FilterBySize(sizeFilter);
-        File[] files = dir.listFiles(filter);
-        for (File file : files) {
-            System.out.println(file.getName() + " - " + addTamanio(file));
-        }
     }
 
     //Devuelve el numero de conversiones que habra que realizar para pasar el tamaño deseado a Bytes.
     //Si la decisión no es correcta se devuelve -1
-    private static int numConversiones(String unidadTamanio) {
-        return switch (unidadTamanio.charAt(0)){
-            case 'B' -> 0;
-            case 'K' -> 1;
-            case 'M' -> 2;
-            case 'G' -> 3;
-            case 'T' -> 4;
-            case 'P' -> 5;
-            default -> -1;
-        };
-    }
 
     //Función para filtrar ficheros pidiendo al usuario la letra
     private static void listarFicherosStarWiths(File dir) {
@@ -120,6 +57,61 @@ public class RuedaSerrano_FranciscoJavier_ejercicioFileFilter {
         }
     }
 
+    private static void listarFicherosTamanio(File dir) {
+        String stringSize = "";
+        long sizeFilter = -1;
+        do{
+            stringSize = pedirPorTeclado("Introduce el tamaño de los archivos que quieres filtrar seguido de su unidad (ej: 2 GB): ");
+            stringSize = stringSize.trim();
+            String[] stringSizeArray = stringSize.split(" ");
+            if (stringSizeArray.length == 2){
+                int numConversiones = numConversiones(stringSizeArray[1]);
+                try{
+                    sizeFilter = Long.parseLong(stringSizeArray[0]);
+                } catch (NumberFormatException e) {
+                    mensajeError(e, "La longitud del archivo no es valido");
+                }
+                if (numConversiones > 0 && sizeFilter != -1) for (int i = 1; i <= numConversiones; i++) sizeFilter *= 1024;
+                if (numConversiones == -1){
+                    System.out.println("No se introdujo debidamente la unidad del tamaño de los archivos. FIJATE EN EL EJEMPLO");
+                    sizeFilter = -1;
+                }
+            }else System.out.println("No se introdujo debidamente el tamaño de los archivos para filtrar. FIJATE EN EL EJEMPLO");
+        }while (sizeFilter == -1);
+        FilenameFilter filter = new  FilterBySize(sizeFilter);
+        File[] files = dir.listFiles(filter);
+        for (File file : files) {
+            System.out.println(file.getName() + " - " + addTamanio(file));
+        }
+    }
+
+    private static void listarFicherosDate(File dir) {
+        String stringDate = "";
+        Date dateFilter = null;
+        do{
+            stringDate = pedirPorTeclado("Introduce la fecha desde la que empezar a buscar (dd/MM/yyyy): ");
+            stringDate = stringDate.trim();
+            dateFilter = parseDate(stringDate);
+        }while (dateFilter == null);
+        FilenameFilter filter = new  FilterByDate(dateFilter);
+        File[] files = dir.listFiles(filter);
+        for (File file : files) {
+            System.out.println(file.getName() + " - " + new Date(file.lastModified()));
+        }
+    }
+
+    private static int numConversiones(String unidadTamanio) {
+        return switch (unidadTamanio.charAt(0)){
+            case 'B' -> 0;
+            case 'K' -> 1;
+            case 'M' -> 2;
+            case 'G' -> 3;
+            case 'T' -> 4;
+            case 'P' -> 5;
+            default -> -1;
+        };
+    }
+
     private static int elegirOpcion(String mensaje) {return Integer.parseInt(pedirPorTeclado(mensaje));}
 
     //Con este metodo se muestra por consola el error que pueda surgir durante un try... Catch...
@@ -132,11 +124,6 @@ public class RuedaSerrano_FranciscoJavier_ejercicioFileFilter {
         if (e instanceof ParseException){
             if (!mensaje.isEmpty()) System.out.println(mensaje);
             else System.out.println("ERROR AL INTRODUCIR LA FECHA!!");
-            return "-1";
-        }
-        if (e instanceof IOException){
-            if (!mensaje.isEmpty()) System.out.println(mensaje);
-            else System.out.println("No se introdujo correctamente algún dato.");
             return "-1";
         }
         return "";
@@ -184,16 +171,9 @@ public class RuedaSerrano_FranciscoJavier_ejercicioFileFilter {
             this.dateFilter = dateFilter;
         }
 
-        public boolean accept(File dir, String name) {
-            File f = new File(dir, name);
-            try {
-                BasicFileAttributes attrs = Files.readAttributes(f.toPath(), BasicFileAttributes.class);
-                Date creationDate = new Date(attrs.creationTime().toMillis());
-                return creationDate.after(dateFilter);
-            } catch (IOException e) {
-                mensajeError(e, "ERROR AL INTRODUCIR LA FECHA!!");
-            }
-            return false;
+        @Override
+        public boolean accept(File directory, String fileName) {
+            return new File(directory, fileName).lastModified() >= dateFilter.getTime();
         }
     }
 

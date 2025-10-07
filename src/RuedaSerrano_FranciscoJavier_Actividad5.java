@@ -10,7 +10,7 @@ public class RuedaSerrano_FranciscoJavier_Actividad5 {
         if (args.length > 0) {
             ruta = args[0];
         } else{
-            ruta = pedirPorTeclado("Introduce la ruta del archivo a comprobar");
+            ruta = pedirPorTeclado("Introduce la ruta del archivo a comprobar: ");
         }
         if (ruta.equals("")){
             System.out.println("No existe el archivo a comprobar");
@@ -21,7 +21,7 @@ public class RuedaSerrano_FranciscoJavier_Actividad5 {
             }else{
                 if (archivo.isDirectory()) System.out.println("Se introdujo un directorio, no un archivo.");
                 else{
-                    String stringDeBusqueda = pedirPorTeclado("Introduce el criterio de Busqueda (una sola letra)");
+                    String stringDeBusqueda = pedirPorTeclado("Introduce el criterio de Busqueda (una sola letra): ");
                     stringDeBusqueda = stringDeBusqueda.trim();
                     if (stringDeBusqueda.length() > 1 || stringDeBusqueda.length() < 1){
                         System.out.println("No existe criterio de busqueda.");
@@ -39,8 +39,22 @@ public class RuedaSerrano_FranciscoJavier_Actividad5 {
             FileReader fr = new FileReader(archivo);
             BufferedReader br = new BufferedReader(fr);
             String linea;
-            linea = br.readLine();
-            System.out.println(linea);
+            int cuentaLineas = 1;
+            do{
+                linea = br.readLine();
+                if (linea != null) {
+                    String[] palabras = linea.split("[\\s,!.]+");
+                    for(String palabra : palabras){
+                        if (palabra.toLowerCase().startsWith(String.valueOf(criterioBusqueda)) ||
+                                palabra.toUpperCase().startsWith(String.valueOf(criterioBusqueda))){
+                            System.out.println("Se ha encontrado \"" + palabra + "\" en la linea " + cuentaLineas +
+                                    " en la columna " + linea.indexOf(palabra));
+                        }
+                    }
+                    cuentaLineas++;
+                }
+            } while (linea != null);
+            br.close();
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
