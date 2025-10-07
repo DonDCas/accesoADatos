@@ -1,6 +1,6 @@
 
 
-public class actividad4 {
+public class RuedaSerrano_FranciscoJavier_Actividad4 {
     public class ExcepcionesDivPorCeroGest{
         public int divide (int a, int b){
             return a /b;
