@@ -12,7 +12,7 @@ public class RuedaSerrano_FranciscoJavier_ejercicioFileFilter {
     public static void main(String[] args) {
         String ruta = "";
         //Se le puede pasar una ruta por argumentos y sino la puedes introducir aqui:
-        if (args.length > 1) ruta = pedirPorTeclado("Introduce una ruta para ver sus archivos: ");
+        if (args.length < 1) ruta = pedirPorTeclado("Introduce una ruta para ver sus archivos: ");
         else ruta = args[0];
         File dir =  new File(ruta);
         int op=-1;
