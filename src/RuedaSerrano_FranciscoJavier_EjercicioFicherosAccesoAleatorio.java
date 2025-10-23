@@ -66,15 +66,15 @@ public class RuedaSerrano_FranciscoJavier_EjercicioFicherosAccesoAleatorio {
                 //Pedimos los datos de los heroes iniciales
                 String nombre = pedirPorTeclado("Introduce el nombre el heroe: ");
                 if (nombre.length()<TAM_NOMBRE){
-                    for (int j = nombre.length(); j<=10; j++) nombre += "*";
+                    for (int j = nombre.length(); j<=10; j++) nombre += " ";
                 }
                 String poder = pedirPorTeclado("Introduce el superpoder: ");
                 if (poder.length()<TAM_POWER){
-                    for (int j = poder.length(); j<=20; j++) poder += "*";
+                    for (int j = poder.length(); j<=20; j++) poder += " ";
                 }
                 String identidad = pedirPorTeclado("Introduce el identidad secreta: ");
                 if (identidad.length()<TAM_IDENT){
-                    for (int j = identidad.length(); j<=10; j++) identidad += "*";
+                    for (int j = identidad.length(); j<=10; j++) identidad += " ";
                 }
                 //Pedimos un boolean de si esta vivo o no nuestro heroe
                 boolean vivo = pedirPorTecladoSN("Esta vivo(S/N)");
@@ -150,11 +150,11 @@ public class RuedaSerrano_FranciscoJavier_EjercicioFicherosAccesoAleatorio {
         try(RandomAccessFile file = new RandomAccessFile(archivo, "rw")){
             int idNuevo = ultimoId(file)+1;
             String nombreNuevo = pedirPorTeclado("Introduce el nombre el heroe: ");
-            if (nombreNuevo.length()<TAM_NOMBRE) for (int i = nombreNuevo.length(); i < TAM_NOMBRE; i++) nombreNuevo += "*";
+            if (nombreNuevo.length()<TAM_NOMBRE) for (int i = nombreNuevo.length(); i < TAM_NOMBRE; i++) nombreNuevo += " ";
             String poderNuevo = pedirPorTeclado("Introduce su poder: ");
-            if (poderNuevo.length()<TAM_POWER) for (int i = poderNuevo.length(); i < TAM_POWER; i++) poderNuevo += "*";
+            if (poderNuevo.length()<TAM_POWER) for (int i = poderNuevo.length(); i < TAM_POWER; i++) poderNuevo += " ";
             String identidadNueva = pedirPorTeclado("Introduce el identidad secreta: ");
-            if (identidadNueva.length()<TAM_IDENT) for (int i = identidadNueva.length(); i < TAM_IDENT; i++) identidadNueva += "*";
+            if (identidadNueva.length()<TAM_IDENT) for (int i = identidadNueva.length(); i < TAM_IDENT; i++) identidadNueva += " ";
             boolean vivo = pedirPorTecladoSN("Esta vivo(S/N)");
 
             //Nos posicionamos en la ultima posición escrita

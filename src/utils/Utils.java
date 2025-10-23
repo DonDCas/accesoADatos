@@ -251,4 +251,29 @@ public class Utils {
         }
        return nuevoTelefonoString;
     }
+
+    public static String pedirPorTeclado(String mensaje){
+        System.out.print((mensaje.endsWith(": ") ? mensaje : mensaje+": "));
+        return S.nextLine();
+    }
+
+    public static boolean pedirPorTecladoSN(String mensaje) {
+        do{
+            String respuesta = pedirPorTeclado(mensaje);
+            if (respuesta.length() == 1){
+                if (respuesta.equalsIgnoreCase("s")) return true;
+                if (respuesta.equalsIgnoreCase("n")) return false;
+            }
+        }while(true);
+    }
+
+    public static int convertirAInt(String scanner) {
+        int conversion = -1;
+        try{
+            conversion = Integer.parseInt(scanner.trim());
+            return conversion;
+        }catch (NumberFormatException e){
+            return conversion;
+        }
+    }
 }
