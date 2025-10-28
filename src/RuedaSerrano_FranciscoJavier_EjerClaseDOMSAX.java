@@ -1,42 +1,219 @@
+import org.w3c.dom.*;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 import utils.Utils;
 
+import javax.xml.parsers.*;
+import javax.xml.transform.*;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.lang.annotation.Documented;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class RuedaSerrano_FranciscoJavier_EjerClaseDOMSAX {
-    static final int TAM_NOMBRE = 15;
-    static final int TAM_POWER = 20;
-    static final int TAM_IDENT = 15;
-    static final int TAM_FAMILIAR = 35;
-    public static void main(String[] args) {
-        String ruta = "/home/dondcas-ubuntu/Escritorio/2DAM/Acceso_a_Datos/Pruebas/Marvel2.txt";
+    static final int TAM_NOMBRE = 15, TAM_POWER = 20, TAM_IDENT = 15, TAM_FAMILIAR = 35;
+    static final int CANT_FAMILIARES = 3, CANT_DATOS_INTEGER = 1, CANT_DATOS_BOOL = 1;
+    static final int TAM_LINEA_DATOS =
+            ((4 * CANT_DATOS_INTEGER) + (TAM_NOMBRE + TAM_POWER + TAM_IDENT + (TAM_FAMILIAR * CANT_FAMILIARES))*2 + CANT_DATOS_BOOL);
+    public static void main(String[] args) throws IOException, SAXException {
+        //String ruta = "/home/dondcas-ubuntu/Escritorio/2DAM/Acceso_a_Datos/Pruebas/Marvel2.txt";
+        String ruta = "D:\\2DAM\\AccesoADatos\\Marvel.txt";
         File archivo = new File(ruta);
+        File ficheroXML = new File("D:\\2DAM\\AccesoADatos\\Marvel.xml");
         if (!archivo.exists() || archivo.length() == 0) {
             ingresarDatosIniciales(archivo);
         }else Utils.pulsaEnter("Fichero cargado, pulsa enter. Pulsa enter");
 
-        menuCRUD(archivo);
+        menuCRUD(archivo, ficheroXML);
     }
 
-    private static void menuCRUD(File archivo) {
+    private static void menuCRUD(File archivo, File ficheroXml) throws IOException, SAXException {
         int op = -1;
         do{
             mostrarMenu();
             op = Utils.convertirAInt(Utils.pedirPorTeclado("Introduce una opción: "));
             switch (op){
-                -1 => System.out.println("ERROR: OPCIÓN NO VALIDA");
-                case 0: System.out.println("ADIOS VUELVA PRONTO! ono");
-                case 1: generarXML(archivo);
-                default: System.out.println("Opción erronea");
+                case -1 -> System.out.println("ERROR: OPCIÓN NO VALIDA");
+                case 0 -> System.out.println("ADIOS VUELVA PRONTO! ono");
+                case 1 -> generarXML(archivo, ficheroXml);
+                case 2 -> leerXML(ficheroXml);
+                case 3 -> saxPorDefecto(ficheroXml);
+                default -> System.out.println("Opción erronea");
             };
         }while(op != 0);
     }
 
-    private static void generarXML(File archivo) {
+    private static void generarXML(File archivo, File ficheroXML) throws IOException {
         System.out.println("Generando XML...");
+        String prueba = "Hola buenas (todo)";
+        String subString = prueba.substring(prueba.indexOf('(')+1, prueba.indexOf(')'));
+        System.out.println(subString);
+        Utils.pulsaEnter(subString);
+        try(RandomAccessFile file = new RandomAccessFile(archivo, "r")){
+            int id, posicion = 0;
+            char aux, nombre[] = new char[TAM_NOMBRE], poder[] = new char[TAM_POWER],
+                    identidad[] = new char[TAM_IDENT], familiar[];
+            boolean vivo = true;
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            try{
+                DocumentBuilder builder = factory.newDocumentBuilder();
+                DOMImplementation implementation = builder.getDOMImplementation();
+                Document document = implementation.createDocument(null, "Heroes", null);
+                document.setXmlVersion("1.0");
+                while (file.getFilePointer() != file.length()){
+                    file.seek(posicion);
+                    id = file.readInt();
+                    if(id > 0){
+                        for(int i = 0; i < TAM_NOMBRE; i++){
+                            aux = file.readChar();
+                            nombre[i] = aux;
+                        }
+                        for(int i = 0; i < TAM_POWER; i++){
+                            aux = file.readChar();
+                            poder[i] = aux;
+                        }
+                        for(int i = 0; i < TAM_IDENT; i++){
+                            aux = file.readChar();
+                            identidad[i] = aux;
+                        }
+                        vivo = file.readBoolean();
+                        //Insertamos los datos que descuelgan de la etiqueta raiz
+                        Element raiz = document.createElement("Heroe");
+                        document.getDocumentElement().appendChild(raiz);
+                        crearElemento("Id", Integer.toString(id), raiz, document);
+                        crearElemento("Nombre", new String(nombre).trim(), raiz, document);
+                        crearElemento("SuperPoder", new String(poder).trim(), raiz, document);
+                        crearElemento("identidad",new String(identidad).trim(), raiz, document);
+                        if (vivo) crearElemento ("EstaVivo", "", raiz, document);
+                        crearElemento("EstaVivo", (vivo ? "Esta Vivo" : "Esta Morido"), raiz, document);
+                        //Insertamos ahora los datos hijos de la siguiente etiqueta
+                        Element hijo = document.createElement("Familiares");
+                        document.getDocumentElement().appendChild(hijo);
+                        for(int i = 0; i < CANT_FAMILIARES; i++){
+                            familiar = new char[TAM_FAMILIAR];
+                            for (int j = 0; j < TAM_FAMILIAR; j++) {
+                                aux = file.readChar();
+                                familiar[j] = aux;
+                            }
+                            String familiarString = new String(familiar).trim();
+                            String nombreEtiqueta = familiarString.substring(familiarString.indexOf('(')+1,familiarString.indexOf(')'));
+                            String valueEtiqueta = familiarString.substring(0,familiarString.indexOf('(')).trim();
+                            crearElemento(nombreEtiqueta, valueEtiqueta, hijo, document );
+                        }
+                        raiz.appendChild(hijo);
+                    }
+                    posicion += TAM_LINEA_DATOS;
+                }
+                Source source = new DOMSource(document);
+                //Result result = new StreamResult(new java.io.File("/home/dondcas-ubuntu/Escritorio/2DAM/Acceso_a_Datos/Pruebas/Marvel2.xml"));
+                Result result = new StreamResult(new File("D:\\2DAM\\AccesoADatos\\Marvel.xml"));
+                Transformer transformer = TransformerFactory.newInstance().newTransformer();
+                transformer.transform(source, result);
+                ficheroXML = new File("D:\\2DAM\\AccesoADatos\\Marvel.xml");
+            } catch (ParserConfigurationException e) {
+                throw new RuntimeException(e);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } catch (TransformerConfigurationException e) {
+                throw new RuntimeException(e);
+            } catch (TransformerException e) {
+                throw new RuntimeException(e);
+            }
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void leerXML(File filexml) throws FileNotFoundException, IOException, SAXException {
+        if (!filexml.exists() || filexml == null) Utils.pulsaEnter("No existe el archivo");
+        else{
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = null;
+            try {
+                builder = factory.newDocumentBuilder();
+            } catch (ParserConfigurationException e) {
+                throw new RuntimeException(e);
+            }
+            Document document = builder.parse(filexml);
+            document.getDocumentElement().normalize();
+            Element raiz = document.getDocumentElement();
+            System.out.printf("Elemento raiz: %s\n", raiz.getNodeName());
+            NodeList heroes = document.getElementsByTagName("Heroe");
+            System.out.printf("Hay registrados: %d heroes\n", heroes.getLength());
+            Utils.pulsaEnter("Pulsa enter para ver cada Heroe uno a uno");
+            for(int i = 0; i < heroes.getLength(); i++){
+                Utils.limpiarPantalla();
+                Node heroe = heroes.item(i);
+                if (heroe.getNodeType() == Node.ELEMENT_NODE){
+                    Element elementoHeroe = (Element) heroe;
+                    String id = elementoHeroe.getElementsByTagName("Id").item(0).getTextContent();
+                    String nombre = elementoHeroe.getElementsByTagName("Nombre").item(0).getTextContent();
+                    String poder = elementoHeroe.getElementsByTagName("SuperPoder").item(0).getTextContent();
+                    String identidad = elementoHeroe.getElementsByTagName("identidad").item(0).getTextContent();
+                    String estaVivo = (elementoHeroe.getElementsByTagName("EstaVivo").item(0) != null ? "Esta Vivo" : "Esta Morido");
+                    System.out.printf("Nº ID: %s\n" +
+                            "- Alias: %s\n" +
+                            "- Superpoder principal: %s\n" +
+                            "- Identidad Secreta: %s\n" +
+                                    "- %s",
+                            id, nombre, poder, identidad, estaVivo);
+                    System.out.println("\n Familiares conocidos: ");
+                    NodeList familia = elementoHeroe.getElementsByTagName("Familiares");
+                    if (familia.getLength() <= 0) System.out.printf("Sin familiares conocidos.");
+                    else{
+                        Node nodoFamiliares = familia.item(0);
+                        NodeList listaFamiliares = nodoFamiliares.getChildNodes();
+                        for(int j = 0; j < listaFamiliares.getLength(); j++){
+                            Node familiar = listaFamiliares.item(j);
+                            if (familiar.getNodeType() == Node.ELEMENT_NODE){
+                                Element elementFamiliar = (Element) familiar;
+                                System.out.printf("- %s (%s)\n", elementFamiliar.getTextContent(), elementFamiliar.getNodeName());
+                            }
+                        }
+                    }
+                    Utils.pulsaEnter("Ver el siguiente Heroe de la lista ...");
+                }
+            }
+        }
+    }
+
+    private static void saxPorDefecto(File filexml) throws FileNotFoundException, IOException, SAXException {
+        try{
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            SAXParser interprete = factory.newSAXParser();
+            interprete.parse(filexml, new DefaultHandler());
+        } catch (IOException | ParserConfigurationException | SAXException e) {
+            System.out.println("Error al leer el archivo" + e.getMessage());
+        }
+    }
+
+    private static void saxManejadorPropio(File filexml) throws FileNotFoundException, IOException, SAXException {
+        try{
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            SAXParser interprete = factory.newSAXParser();
+            versionesHandler handler = new versionHandler();
+            interprete.parse(filexml, handler);
+            ArrayList<Heroe> heroes = handler.getHeroes();
+            for(Heroe heroe : heroes){
+                System.out.println(heroe);
+            }
+        }
+    }
+
+    private static void crearElemento(String nombreEtiqueta, String value, Element etiqueta, Document document) {
+        Element elem = document.createElement(nombreEtiqueta);
+        etiqueta.appendChild(elem);
+        if (value != null || !value.isEmpty()){
+            Text text = document.createTextNode(value);
+            elem.appendChild(text);
+        }
     }
 
     private static void mostrarMenu() {
@@ -98,7 +275,7 @@ public class RuedaSerrano_FranciscoJavier_EjerClaseDOMSAX {
                 file.writeBoolean(vivo);
                 System.out.println("Vamos a introducir a los familiares. Por favor sigue este patron sin comillas: 'Nombre Completo (Relacion)' ");
                 for (int j = 0; j <3 ; j++){
-                    String nombreFamiliar = Utils.pedirPorTeclado("Introduce el nombre del familiar numero "+ (j+1)+ ":");
+                    String nombreFamiliar = Utils.pedirPorTeclado("Introduce el nombre del familiar numero "+ (j+1)+ ": ");
                     if (nombreFamiliar.length()<TAM_FAMILIAR){
                         for (int k = nombreFamiliar.length(); k<=10; k++) nombreFamiliar += " ";
                     }
@@ -114,5 +291,90 @@ public class RuedaSerrano_FranciscoJavier_EjerClaseDOMSAX {
             throw new RuntimeException(e);
         }
 
+    }
+
+    public class versionHandler extends DefaultHandler implements versionesHandler {
+        private final ArrayList<Heroe> heroes = new ArrayList();
+        private Heroe heroe;
+        private final StringBuilder buffer = new StringBuilder();
+
+        public ArrayList<Heroe> getHeroes(){
+            return heroes;
+        }
+        @Override
+        public void characters(char[] ch, int start, int length) throws SAXException {
+            buffer.append(ch, start, length);
+        }
+
+        @Override
+        public void endElemet(String uri, String localName, String qName) throws SAXException {
+            switch(qName){
+                case "heroes", "heroe":
+                    break;
+                case "Id":
+                    heroe.setId(Integer.parseInt(buffer.toString()));
+                    break;
+                case "Nombre":
+                    heroe.setNombre(buffer.toString());
+                    break;
+                case "SuperPoder":
+                    heroe.setPoder(buffer.toString());
+                    break;
+                case "identidad":
+                    heroe.setIdentidad(buffer.toString());
+                    break;
+                case "EstaVivo":
+                    heroe.setVivo((qName != null) ? true : false);
+                case "Familiares":
+
+            }
+        }
+    }
+    public class Heroe{
+        public int id;
+        public String nombre;
+        public String poder;
+        public String identidad;
+        public boolean vivo;
+
+        public int getId() {
+            return id;
+        }
+
+        public void setId(int id) {
+            this.id = id;
+        }
+
+        public String getNombre() {
+            return nombre;
+        }
+
+        public void setNombre(String nombre) {
+            this.nombre = nombre;
+        }
+
+        public String getPoder() {
+            return poder;
+        }
+
+        public void setPoder(String poder) {
+            this.poder = poder;
+        }
+
+        public String getIdentidad() {
+            return identidad;
+        }
+
+        public void setIdentidad(String identidad) {
+            this.identidad = identidad;
+        }
+
+        public boolean isVivo() {
+            return vivo;
+        }
+
+        public void setVivo(boolean vivo) {
+            this.vivo = vivo;
+        }
     }
 }
