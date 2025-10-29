@@ -189,8 +189,9 @@ public class RuedaSerrano_FranciscoJavier_EjerClaseDOMSAX {
             SAXParserFactory factory = SAXParserFactory.newInstance();
             SAXParser interprete = factory.newSAXParser();
             interprete.parse(filexml, new DefaultHandler());
+            Utils.pulsaEnter("El archivo esta perfecto mi rey");
         } catch (IOException | ParserConfigurationException | SAXException e) {
-            System.out.println("Error al leer el archivo" + e.getMessage());
+            Utils.pulsaEnter("Hay errores en el archivo");
         }
     }
 
